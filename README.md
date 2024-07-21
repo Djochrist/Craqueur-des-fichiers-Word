@@ -7,6 +7,7 @@ Fonctionnalités
 - Dictionnaire de mots de passe : Utilise un fichier texte contenant une liste de mots de passe potentiels.
 - Force brute : Génère toutes les combinaisons possibles de mots de passe jusqu'à une longueur maximale spécifiée.
 - Logging : Enregistre les informations de débogage et les résultats de la tentative de craquage.
+
 Prérequis
 
 - Python 3.12.x
