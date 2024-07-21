@@ -31,7 +31,7 @@ Utilisation
 2. Modifier le chemin vers le fichier dictionnaire** :
     - Ouvrez le script et modifiez la variable `chemin_dico` pour y mettre le chemin absolu vers votre fichier `Dico.txt` :
 
-3. Exécuter le script** :
+3. Exécuter le script :
     - Exécutez le script Python :
    
     - Lorsque le script est exécuté, il vous demandera de saisir le chemin du fichier Word sécurisé :
