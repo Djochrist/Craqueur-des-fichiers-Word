@@ -9,7 +9,7 @@ Fonctionnalités
 - Logging : Enregistre les informations de débogage et les résultats de la tentative de craquage.
 Prérequis
 
-- Python 3.x
+- Python 3.12.x
 - Bibliothèque `msoffcrypto`
 - Fichier de dictionnaire (`Dico.txt`) contenant des mots de passe potentiels
 
