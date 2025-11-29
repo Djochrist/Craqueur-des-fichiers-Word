@@ -3,24 +3,32 @@ from itertools import product
 from string import ascii_lowercase, digits
 import logging
 import time
+import os
+import tempfile
 
-print ("Let's go !")
-
-# Précisez le chemin vers le fichier dictionnaire
-chemin_dico = r'c:\Dico.txt'
+# Précisez le chemin vers le fichier dictionnaire (par défaut Dico.txt à côté du script)
+chemin_dico = os.path.join(os.path.dirname(__file__), 'Dico.txt')
 
 # Configuration du logging pour les informations de débogage
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def charger_dictionnaire(chemin_dico):
-    """Charge les mots de passe à partir d'un fichier dictionnaire."""
+def charger_dictionnaire(chemin_dico_param=None):
+    """Charge les mots de passe à partir d'un fichier dictionnaire.
+    Si chemin_dico_param est None, utilise la variable `chemin_dico` du module.
+    """
+    chemin = chemin_dico_param or chemin_dico
+    chemin = os.path.expanduser(chemin)
+    chemin = os.path.abspath(chemin)
     try:
-        with open(chemin_dico, 'r', encoding='utf-8') as fichier:
-            mots_de_passe = [ligne.strip() for ligne in fichier]
-        logging.info(f'{len(mots_de_passe)} mots de passe chargés du dictionnaire.')
+        with open(chemin, 'r', encoding='utf-8') as fichier:
+            mots_de_passe = [ligne.strip() for ligne in fichier if ligne.strip()]
+        logging.info(f'{len(mots_de_passe)} mots de passe chargés du dictionnaire ({chemin}).')
         return mots_de_passe
     except FileNotFoundError:
-        logging.error(f'Le fichier {chemin_dico} n\'a pas été trouvé.')
+        logging.error(f'Le fichier {chemin} n\'a pas été trouvé.')
+        return []
+    except Exception as e:
+        logging.error(f'Erreur lors du chargement du dictionnaire {chemin} : {e}')
         return []
 
 def force_brute(longueur_max):
@@ -31,14 +39,20 @@ def force_brute(longueur_max):
             yield ''.join(tentative)
 
 def essayer_mot_de_passe(chemin_word, mot_de_passe):
-    """Tente de déchiffrer le fichier Word avec un mot de passe donné."""
+    """Tente de déchiffrer le fichier Word avec un mot de passe donné.
+    Renvoie True si la décryption réussit (fichier temporaire créé), False sinon.
+    """
+    chemin_word = os.path.expanduser(chemin_word)
+    chemin_word = os.path.abspath(chemin_word)
     try:
         with open(chemin_word, 'rb') as fichier:
             fichier_office = msoffcrypto.OfficeFile(fichier)
+            # charger la clé et tenter de décrypter dans un fichier temporaire sûr
             fichier_office.load_key(password=mot_de_passe)
-            with open('temp_dechiffre.docx', 'wb') as fichier_dechiffre:
-                fichier_office.decrypt(fichier_dechiffre)
-            return True
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp:
+                fichier_office.decrypt(tmp)
+        logging.debug(f'Décryption réussie avec le mot de passe: {mot_de_passe} -> {tmp.name}')
+        return True
     except msoffcrypto.exceptions.InvalidKeyError:
         logging.debug(f'Erreur de clé invalide avec le mot de passe : {mot_de_passe}')
         return False
@@ -69,10 +83,10 @@ def craquer_mot_de_passe_word(chemin_word, mots_de_passe, longueur_max_brute=4):
     return None, temps_ecoule
 
 if __name__ == "__main__":
+    # Utilisation en mode console (protégée par le guard)
     chemin_word = input("Veuillez entrer le chemin du fichier Word à craquer : ")
-    # Convertir le chemin fourni en une chaîne brute
     chemin_word = fr'{chemin_word}'
-    mots_de_passe = charger_dictionnaire(chemin_dico)
+    mots_de_passe = charger_dictionnaire(None)
     if mots_de_passe:
         mot_de_passe_trouve, temps_ecoule = craquer_mot_de_passe_word(chemin_word, mots_de_passe)
         if mot_de_passe_trouve:
